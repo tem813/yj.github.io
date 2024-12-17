@@ -1,9 +1,12 @@
+// script.js
+
 document.addEventListener('DOMContentLoaded', () => {
     const totalCards = 40; // 총 카드 수
     const pairCount = totalCards / 2; // 카드 쌍 수
     let images = [];
     let flippedCards = [];
     let matchedCards = [];
+    let cardPositions = []; // 카드의 초기 위치를 저장할 배열
 
     const gameBoard = document.getElementById('game-board');
     const hintInfo = document.getElementById('hint-info');
@@ -149,10 +152,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function initializeGame() {
+        const fragment = document.createDocumentFragment(); // 최적화된 카드 추가
         cards.forEach((image, index) => {
             const card = createCard(image, index);
-            gameBoard.appendChild(card);
+            // 초기 위치 계산 (8열 × 5행 with 20px gaps)
+            const row = Math.floor(index / 8);
+            const col = index % 8;
+            const top = row * 170; // 150px height + 20px gap
+            const left = col * 170; // 150px width + 20px gap
+            card.style.top = `${top}px`;
+            card.style.left = `${left}px`;
+            card.dataset.originalIndex = index; // 원래 인덱스 저장
+            fragment.appendChild(card);
+            cardPositions.push({ top: top, left: left });
         });
+        gameBoard.appendChild(fragment);
     }
 
     function generateTeamNameFields(count) {
@@ -179,7 +193,10 @@ document.addEventListener('DOMContentLoaded', () => {
     generateTeamNameFields(2);
 
     teamCountInput.addEventListener('input', () => {
-        generateTeamNameFields(parseInt(teamCountInput.value, 10));
+        const count = parseInt(teamCountInput.value, 10);
+        if (count > 0) {
+            generateTeamNameFields(count);
+        }
     });
 
     teamForm.addEventListener('submit', (e) => {
@@ -191,11 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
         teamScores = [];
         for (let i = 1; i <= teamCount; i++) {
             let teamName = formData.get(`team-name-${i}`) || '';
-            teamName = teamName.substring(0, 6);
-
-            if (teamName.length < 6) {
-                teamName = teamName.padEnd(6, ' ');
-            }
+            teamName = teamName.trim().substring(0, 6); // 이름 공백 제거 및 6자 제한
 
             teamNames.push(teamName);
             teamScores.push(0);
@@ -238,4 +251,102 @@ document.addEventListener('DOMContentLoaded', () => {
 
     revealAllButton.addEventListener('click', revealAllCardsForHint);
     startButton.addEventListener('click', revealAllCardsForStart);
+
+    // **** 섞기 버튼 관련 코드 ****
+    const shuffleButton = document.getElementById('shuffle-cards');
+
+    shuffleButton.addEventListener('click', () => {
+        if (matchedCards.length === cards.length) {
+            alert('모든 카드를 매칭하셨습니다!');
+            return;
+        }
+        shuffleUnmatchedCardsWithAnimation();
+    });
+
+    function shuffleUnmatchedCardsWithAnimation() {
+        const allCards = Array.from(gameBoard.children);
+        const matchedSet = new Set(matchedCards);
+        const unmatchedCards = allCards.filter(card => !matchedSet.has(card));
+
+        if (unmatchedCards.length === 0) {
+            alert('섞을 카드가 없습니다!');
+            return;
+        }
+
+        // Calculate center position
+        const centerX = (gameBoard.clientWidth - 150) / 2; // 1340 / 2 - 150 / 2 = 595px
+        const centerY = (gameBoard.clientHeight - 150) / 2; // 830 / 2 - 150 / 2 = 325px
+
+        // Move all unmatched cards to center with slight offsets to prevent complete overlap
+        unmatchedCards.forEach((card, index) => {
+            // Calculate slight offsets based on index to distribute cards around the center
+            const angle = (2 * Math.PI / unmatchedCards.length) * index;
+            const offset = 30; // Slight offset to prevent complete overlap
+            const targetX = centerX + offset * Math.cos(angle);
+            const targetY = centerY + offset * Math.sin(angle);
+            card.style.top = `${targetY}px`;
+            card.style.left = `${targetX}px`;
+        });
+
+        // Wait for the transition to complete (0.5s)
+        setTimeout(() => {
+            // Get new random positions
+            const newPositions = getNewRandomPositions(unmatchedCards.length);
+
+            // Move cards to new positions
+            unmatchedCards.forEach((card, index) => {
+                card.style.top = `${newPositions[index].top}px`;
+                card.style.left = `${newPositions[index].left}px`;
+                // Update cardPositions array
+                const originalIndex = parseInt(card.dataset.originalIndex, 10);
+                cardPositions[originalIndex] = { top: newPositions[index].top, left: newPositions[index].left };
+            });
+        }, 500); // Transition time in CSS
+    }
+
+    function getNewRandomPositions(unmatchedCardsCount) {
+        const gridRows = 5;
+        const gridCols = 8;
+        const cardWidth = 150;
+        const cardHeight = 150;
+        const padding = 20; // gap between cards
+
+        const totalWidth = gridCols * (cardWidth + padding) - padding; // 8*170 - 20 = 1360 - 20 = 1340px
+        const totalHeight = gridRows * (cardHeight + padding) - padding; // 5*170 - 20 = 850 - 20 = 830px
+
+        const availablePositions = [];
+
+        // All possible positions with increased gaps
+        for (let row = 0; row < gridRows; row++) {
+            for (let col = 0; col < gridCols; col++) {
+                const posX = col * (cardWidth + padding);
+                const posY = row * (cardHeight + padding);
+                availablePositions.push({ top: posY, left: posX });
+            }
+        }
+
+        // Remove positions occupied by matched cards
+        matchedCards.forEach(card => {
+            const index = Array.from(gameBoard.children).indexOf(card);
+            if (index >= 0 && cardPositions[index]) {
+                const pos = cardPositions[index];
+                const posIndex = availablePositions.findIndex(p => p.top === pos.top && p.left === pos.left);
+                if (posIndex > -1) {
+                    availablePositions.splice(posIndex, 1);
+                }
+            }
+        });
+
+        // Remove positions already assigned in this shuffle
+        const newPositions = [];
+        for (let i = 0; i < unmatchedCardsCount; i++) {
+            if (availablePositions.length === 0) break;
+            const randIndex = Math.floor(Math.random() * availablePositions.length);
+            newPositions.push(availablePositions[randIndex]);
+            availablePositions.splice(randIndex, 1); // prevent duplication
+        }
+
+        return newPositions;
+    }
+    // **** 섞기 버튼 관련 코드 끝 ****
 });
