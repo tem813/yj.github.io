@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>MemoryGame</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>MiSSION! 카드를 구하다 GAME!</h1>
+    <!-- 게임 컨테이너 -->
+    <div id="game-container">
+        <div id="button-container">
+            <!-- 팀 목록을 보여줄 영역 -->
+            <button id="start-game">시작</button>
+            <button id="reveal-all">힌트</button>
+            <div id="hint-info" style="display: none;">
+                <div id="hint-countdown"></div>
+            </div>
+            
+            <div id="team-list"></div>
+        </div>
+        <div id="game-board"></div>
+    </div>
+
+    <!-- 팀 입력을 위한 모달 -->
+    <div id="team-modal" class="modal">
+        <div class="modal-content">
+            <h2>팀 설정</h2>
+            <form id="team-form">
+                <label for="team-count">팀 개수:</label>
+                <input type="number" id="team-count" min="1" value="2" required><br><br>
+                
+                <!-- 팀 이름 입력 필드들이 동적으로 생성될 영역 -->
+                <div id="team-names-container"></div>
+                <p style="color: red; font-weight: bold;">*팀이름 6자 제한</p>
+
+                <button type="submit">확인</button>
+            </form>
+        </div>
+    </div>
+    <script src="script.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+h1 {
+    margin: 10px 0;
+}
+
+#game-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    margin: 10px auto;
+    gap: 10px;
+}
+
+/* 버튼 컨테이너: 왼쪽 영역 고정폭 지정 */
+#button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    width: 200px;
+    position: relative; /* 위치 기준점 설정 */
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* 힌트 정보 절대 위치 */
+#hint-info {
+    display: none;
+    position: absolute; 
+    top: 150px; 
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10; 
+}
+
+/* 숫자 카운트다운 스타일 */
+#hint-countdown {
+    font-size: 50px;
+    font-weight: bold;
+    color: red;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(255, 0, 0, 0.5);
+    border-radius: 10px;
+    padding: 10px 20px;
+    background-color: rgba(255, 255, 255, 0.8);
+    animation: pop 0.5s ease-in-out;
+    margin-left: 30px; 
+    display: inline-block;
+}
+
+@keyframes pop {
+    0% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+#game-board {
+    display: grid;
+    grid-template-columns: repeat(8, 160px);
+    grid-gap: 15px;
+    justify-content: flex-start; 
+    margin-left: 20px; 
+}
+
+/* 카드 스타일 */
+.card {
+    width: 160px;
+    height: 160px;
+    position: relative;
+    cursor: pointer;
+    border: 1px solid #aaa;
+    background-color: #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.card .back-face {
+    width: 100%;
+    height: 100%;
+    background: url('images/empty.jpg') center center no-repeat;
+    background-size: cover;
+    position: absolute;
+    top: 0; left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #000;
+    text-align: center;
+}
+
+.card.flipped .back-face {
+    display: none;
+}
+
+.card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+}
+
+.card.flipped img {
+    display: block;
+}
+
+/* modal 스타일 */
+.modal {
+    position: fixed;
+    z-index: 9999;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+#team-list {
+    margin-top: 150px;
+    font-size: 20px;
+    font-weight: bold;
+    text-align: left;
+    /* font-family: monospace; 이 부분을 변경하거나 삭제 */
+    font-family: 'Noto Sans', Arial, sans-serif; /* 원하는 폰트 지정 */
+}
+
+#team-list .team-item {
+    margin: 5px 0;
+    position: relative; /* 위치 기준점 설정 */
+    font-family: 'Noto Sans', Arial, sans-serif; /* 원하는 폰트 */
+    font-size: 45px; /* 원하는 폰트 크기 */
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.team-item .turn-arrow {
+    position: absolute;
+    left: -60px; /* 필요에 따라 위치 조정 */
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 60px; 
+    color: red;
+}
+
+/* 여기서부터 뒤집는 효과 추가 */
+.card {
+    transition: transform 1.5s;
+    transform-style: preserve-3d;
+}
+
+.card.flipped {
+    transform: rotateY(180deg);
+}
+
+
+.card img {
+    transform: rotateY(0deg);
+}
